@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "screencap"
+version = "0.1.0"
+description = ""
+authors = ["gravegrow <gravegrow@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+rich = "^13.7.0"
+numpy = "^1.26.2"
+mss = "^9.0.1"
+opencv-python = "^4.9.0.80"
+opencv-stubs = "^0.0.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
