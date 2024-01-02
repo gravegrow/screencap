@@ -1,37 +1,16 @@
 import subprocess
-import tkinter
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List
 
 from rich import box
 from rich.console import Console
 from rich.prompt import IntPrompt
 from rich.table import Table
 
+from screencap.geometry import Geometry
+
 console = Console()
 prompt = IntPrompt()
-
-
-@dataclass
-class Geometry:
-    x: int
-    y: int
-    width: int
-    height: int
-
-    @property
-    def x_bounds(self):
-        return min(self.x + self.width, self._root.winfo_screenwidth())
-
-    @property
-    def y_bounds(self):
-        return min(self.y + self.height, self._root.winfo_screenheight())
-
-    @property
-    def region(self) -> Tuple[int, int, int, int]:
-        return self.x, self.y, self.x_bounds, self.y_bounds
-
-    _root: tkinter.Tk = field(init=False, default_factory=tkinter.Tk)
 
 
 @dataclass

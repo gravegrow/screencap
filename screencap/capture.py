@@ -30,8 +30,7 @@ class WindowCapture(Threaded):
 
 
 if __name__ == "__main__":
-    window = Window("Navigator")
-    capture = WindowCapture(window)
+    capture = WindowCapture(Window("Navigator"))
     capture.start()
 
     print("Press 'Q' to exit.")
