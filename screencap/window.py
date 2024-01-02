@@ -25,7 +25,7 @@ class Geometry:
 
     @property
     def y_bounds(self):
-        return min(self.y + self.width, self._root.winfo_screenheight())
+        return min(self.y + self.height, self._root.winfo_screenheight())
 
     @property
     def region(self) -> Tuple[int, int, int, int]:
