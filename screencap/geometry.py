@@ -2,12 +2,6 @@ import tkinter
 from dataclasses import dataclass, field
 from typing import Tuple
 
-from rich.console import Console
-from rich.prompt import IntPrompt
-
-console = Console()
-prompt = IntPrompt()
-
 
 @dataclass
 class Geometry:
@@ -26,6 +20,6 @@ class Geometry:
 
     @property
     def region(self) -> Tuple[int, int, int, int]:
-        return self.x, self.y, self.x_bounds, self.y_bounds
+        return max(self.x, 0), max(self.y, 0), self.x_bounds, self.y_bounds
 
     _root: tkinter.Tk = field(init=False, default_factory=tkinter.Tk)

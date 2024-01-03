@@ -9,9 +9,6 @@ from rich.table import Table
 
 from screencap.geometry import Geometry
 
-console = Console()
-prompt = IntPrompt()
-
 
 @dataclass
 class Window:
@@ -44,8 +41,8 @@ class Window:
         for index, pid in enumerate(pids):
             table.add_row(str(index + 1), str(pid))
 
-        console.print(table)
-        choice = prompt.ask("Pick", choices=[str(i + 1) for i in range(len(pids))])
+        Console().print(table)
+        choice = IntPrompt.ask("Pick", choices=[str(i + 1) for i in range(len(pids))])
 
         return pids[int(choice) - 1]
 
@@ -67,8 +64,3 @@ class Window:
                 pids.append(pid)
 
         return pids
-
-
-if __name__ == "__main__":
-    window = Window("Wow.exe")
-    print(window.geometry)

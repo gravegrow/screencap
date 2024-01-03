@@ -11,7 +11,20 @@ from screencap.window import Geometry
 @dataclass
 class Image(ABC):
     image: np.ndarray = field(default_factory=lambda: np.zeros(()))
+    file: str = ""
     _crop: Geometry = field(init=False, default_factory=lambda: Geometry(0, 0, 0, 0))
+
+    def from_file(self, file: str, mode: int):
+        self.image = cv2.imread(file, mode)
+
+    def find(self, image: "Image", threshold: float = 0.8):
+        needle = cv2.Mat(image.image)
+        result = cv2.matchTemplate(self.image, needle, cv2.TM_CCOEFF_NORMED)
+
+        location = np.where(result >= threshold)
+        location = np.array(zip(*location[::-1]))
+
+        return np.mean(location)
 
     def show(self, name: str) -> None:
         if self.image.size <= 1:
