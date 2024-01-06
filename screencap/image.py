@@ -5,7 +5,7 @@ from typing import Tuple, Union
 import cv2
 import numpy as np
 
-from screencap.window import Geometry
+from screencap.geometry import Geometry
 
 
 @dataclass

@@ -5,9 +5,9 @@ import numpy as np
 from mss import mss
 from rich import console
 
+from screencap.geometry import Geometry
 from screencap.image import Image
-from screencap.thread import Threaded
-from screencap.window import Geometry, Window
+from screencap.window import Window
 
 
 @dataclass

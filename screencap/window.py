@@ -7,7 +7,7 @@ from rich.console import Console
 from rich.prompt import IntPrompt
 from rich.table import Table
 
-from screencap.geometry import Geometry
+from screencap.geometry import WindowGeometry
 
 
 @dataclass
@@ -29,7 +29,7 @@ class Window:
         x, y = out[3].split(",")
         width, height = out[7].split("x")
 
-        return Geometry(int(x), int(y), int(width), int(height))
+        return WindowGeometry(int(x), int(y), int(width), int(height))
 
     def _pick_pid(self) -> str:
         pids = self._find_pids()

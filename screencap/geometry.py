@@ -12,14 +12,25 @@ class Geometry:
 
     @property
     def x_bounds(self):
-        return min(self.x + self.width, self._root.winfo_screenwidth())
+        return self.x + self.width
 
     @property
     def y_bounds(self):
-        return min(self.y + self.height, self._root.winfo_screenheight())
+        return self.y + self.height
 
     @property
     def region(self) -> Tuple[int, int, int, int]:
         return max(self.x, 0), max(self.y, 0), self.x_bounds, self.y_bounds
 
+
+@dataclass
+class WindowGeometry(Geometry):
     _root: tkinter.Tk = field(init=False, default_factory=tkinter.Tk)
+
+    @property
+    def x_bounds(self):
+        return min(self.x + self.width, self._root.winfo_screenwidth())
+
+    @property
+    def y_bounds(self):
+        return min(self.y + self.height, self._root.winfo_screenheight())
