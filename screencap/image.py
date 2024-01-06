@@ -1,5 +1,4 @@
 from abc import ABC
-from dataclasses import dataclass, field
 from typing import Tuple, Union
 
 import cv2
@@ -8,11 +7,12 @@ import numpy as np
 from screencap.geometry import Geometry
 
 
-@dataclass
 class Image(ABC):
-    image: np.ndarray = field(default_factory=lambda: np.zeros(()))
-    file: str = ""
-    _crop: Geometry = field(init=False, default_factory=lambda: Geometry(0, 0, 0, 0))
+    image: np.ndarray
+    _crop: Geometry = Geometry(0, 0, 0, 0)
+
+    def __init__(self, image: np.ndarray = np.zeros(())) -> None:
+        self.image = image
 
     def find(self, image: "Image", threshold: float = 0.8) -> Union[None, Tuple[int, int]]:
         needle = cv2.Mat(image.image)
