@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 import cv2
 import numpy as np
 from mss import mss
-from rich import console
 
 from screencap.geometry import Geometry
 from screencap.image import Image
@@ -12,18 +11,38 @@ from screencap.window import Window
 
 @dataclass
 class WindowCapture:
-    window: Window
+    process: str
+    window: Window = field(init=False)
     image: Image = field(init=False, default_factory=Image)
+
+    width: int = -1
+    height: int = -1
+
+    def __post_init__(self):
+        self.window = Window(self.process)
+        self.window.choose()
+
+    def set_size(self, width: int, height: int) -> "WindowCapture":
+        self.width = width
+        self.height = height
+        return self
 
     def show(self) -> None:
         self.image.show(f"WindowCapture - {self.window.process}")
 
     def run(self) -> "WindowCapture":
-        self.image.image = self._capture_window()
+        if self.width >= 0 and self.height >= 0:
+            self.image.image = cv2.resize(self._capture_window(), (self.width, self.height))
+        else:
+            self.image.image = self._capture_window()
+
         return self
 
     def _capture_window(self) -> np.ndarray:
-        return self._capture_region(self.window.geometry)
+        if self.window.geometry:
+            return self._capture_region(self.window.geometry)
+
+        return np.zeros(())
 
     def _capture_region(self, geometry: Geometry) -> np.ndarray:
         with mss(with_cursor=True) as scr:
@@ -32,14 +51,15 @@ class WindowCapture:
 
 
 if __name__ == "__main__":
-    capture = WindowCapture(Window("gl"))
+    from rich import console
+
+    capture = WindowCapture("gl")
+    capture.set_size(1280, 720)
 
     console.Console().print("Press 'Q' to exit.")
 
     while True:
         capture.run().show()
-        # tab = capture.image.crop((230, 0, 220, 48))
-        # tab.show("tab")
 
         if cv2.waitKey(1) == ord("q"):
             cv2.destroyAllWindows()

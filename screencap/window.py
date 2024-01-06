@@ -19,7 +19,7 @@ class Window:
     def geometry(self):
         return self._get_geometry(self._pid)
 
-    def __post_init__(self):
+    def choose(self):
         self._pid = self._pick_pid()
 
     def _get_geometry(self, pid: str):
