@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "screencap"
-version = "0.1.401"
+version = "0.1.405"
 description = ""
 authors = ["gravegrow <gravegrow@gmail.com>"]
 readme = "README.md"
@@ -12,6 +12,7 @@ numpy = "^1.26.2"
 mss = "^9.0.1"
 opencv-python = "^4.9.0.80"
 opencv-stubs = "^0.0.8"
+screeninfo = "^0.8.1"
 
 
 [build-system]

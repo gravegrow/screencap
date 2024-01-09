@@ -12,7 +12,6 @@ traceback.install(max_frames=1)
 @dataclass
 class Window:
     process: str
-    _pid: str = field(init=False)
 
     @property
     def geometry(self):
@@ -34,7 +33,12 @@ class Window:
         x, y = out[3].split(",")
         width, height = out[7].split("x")
 
-        return WindowGeometry(int(x), int(y), int(width), int(height))
+        self._geometry.x = int(x)
+        self._geometry.y = int(y)
+        self._geometry.width = int(width)
+        self._geometry.height = int(height)
+
+        return self._geometry
 
     def _choose_pid(self, pids: List[str]) -> str:
         tbl = table.Table(box=box.ROUNDED, header_style="green dim")
@@ -71,3 +75,9 @@ class Window:
                 pids.append(pid)
 
         return pids
+
+    _pid: str = field(init=False)
+    _geometry: WindowGeometry = field(init=False)
+
+    def __post_init__(self):
+        self._geometry = WindowGeometry(0, 0, 20, 20)

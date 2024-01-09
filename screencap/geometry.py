@@ -1,14 +1,15 @@
-import tkinter
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple
+
+import screeninfo
 
 
 @dataclass
 class Geometry:
-    x: int
-    y: int
-    width: int
-    height: int
+    x: int = 0
+    y: int = 0
+    width: int = 1
+    height: int = 1
 
     @property
     def x_bounds(self):
@@ -25,12 +26,19 @@ class Geometry:
 
 @dataclass
 class WindowGeometry(Geometry):
-    _root: tkinter.Tk = field(init=False, default_factory=tkinter.Tk)
+    desktop_width: int = 0
+    desktop_height: int = 0
+
+    def __post_init__(self):
+        for monitor in screeninfo.get_monitors():
+            self.desktop_width += monitor.width
+
+        self.desktop_height = min((monitor.height for monitor in screeninfo.get_monitors()))
 
     @property
     def x_bounds(self):
-        return min(self.x + self.width, self._root.winfo_screenwidth())
+        return min(self.x + self.width, self.desktop_width)
 
     @property
     def y_bounds(self):
-        return min(self.y + self.height, self._root.winfo_screenheight())
+        return min(self.y + self.height, self.desktop_height)

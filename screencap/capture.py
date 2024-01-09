@@ -15,26 +15,28 @@ class WindowCapture:
     window: Window = field(init=False)
     image: Image = field(init=False, default_factory=Image)
 
-    width: int = -1
-    height: int = -1
+    _width: int = -1
+    _height: int = -1
 
     def __post_init__(self):
         self.window = Window(self.process)
         self.window.choose()
 
     def set_size(self, width: int, height: int) -> "WindowCapture":
-        self.width = width
-        self.height = height
+        self._width = width
+        self._height = height
         return self
 
     def show(self) -> None:
         self.image.show(f"WindowCapture - {self.window.process}")
 
-    def run(self) -> "WindowCapture":
-        if self.width >= 0 and self.height >= 0:
-            self.image.image = cv2.resize(self._capture_window(), (self.width, self.height))
+    def run(self, color: int = cv2.COLOR_RGB2GRAY) -> "WindowCapture":
+        if self._width >= 0 and self._height >= 0:
+            self.image.image = cv2.resize(self._capture_window(), (self._width, self._height))
         else:
             self.image.image = self._capture_window()
+
+        self.image.image = cv2.cvtColor(self.image.image, color)
 
         return self
 
