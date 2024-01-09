@@ -26,7 +26,7 @@ class Window:
             out = subprocess.check_output(["xdotool", "getwindowgeometry", pid], text=True)
         except subprocess.CalledProcessError as e:
             console.Console().log(f"Process '{self.process} was terminated.")
-            raise e.with_traceback(None)
+            raise e
 
         out = out.split()
 
