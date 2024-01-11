@@ -1,70 +1,68 @@
-from dataclasses import dataclass, field
+import subprocess
+from subprocess import CalledProcessError
+from typing import Self
 
 import cv2
 import numpy as np
-from mss import mss
+from mss import exception, mss
 
 from screencap.geometry import Geometry
 from screencap.image import Image
+from screencap.pids import select_pid
 from screencap.thread import Threaded
 from screencap.window import Window
 
 
-@dataclass
 class WindowCapture(Threaded):
     process: str
-    window: Window = field(init=False)
-    image: Image = field(init=False, default_factory=Image)
-    color_mode: int = cv2.COLOR_BGR2GRAY
+    pid: str
+    window: Window
+    image: Image
+    color_mode: int
 
-    _width: int = -1
-    _height: int = -1
-
-    def set_size(self, width: int, height: int) -> "WindowCapture":
+    def set_size(self, width: int, height: int) -> Self:
         self._width = width
         self._height = height
         return self
 
     def show(self) -> None:
-        self.image.show(f"WindowCapture - {self.window.process}")
+        if self.image.image is not None:
+            self.image.show(f"WindowCapture - {self.process}")
+
+    def __init__(self, process: str, color_mode: int = cv2.COLOR_BGR2GRAY):
+        self.process = process
+        self.pid = select_pid(self.process)
+        self.window = Window(self.pid)
+        self.color_mode = color_mode
+        self.image = Image()
 
     def _execute(self) -> "WindowCapture":
+        captured = self._capture_window()
+
+        if captured is None:
+            return self
+
         if self._width >= 0 and self._height >= 0:
-            self.image.image = cv2.resize(self._capture_window(), (self._width, self._height))
+            self.image.image = cv2.resize(captured, (self._width, self._height))
         else:
-            self.image.image = self._capture_window()
+            self.image.image = captured
 
         return self
 
-    def _capture_window(self) -> np.ndarray:
-        if self.window.geometry:
-            return self._capture_region(self.window.geometry)
+    def _capture_window(self) -> np.ndarray | None:
+        if self.window.geometry is None:
+            self.stop()
+            raise SystemExit
 
-        return np.zeros(())
+        return self._capture_region(self.window.geometry)
 
-    def _capture_region(self, geometry: Geometry) -> np.ndarray:
+    def _capture_region(self, geometry: Geometry) -> np.ndarray | None:
         with mss(with_cursor=True) as scr:
-            image = scr.grab(geometry.region)
-            return cv2.cvtColor(np.array(image), self.color_mode)
+            try:
+                image = scr.grab(geometry.region)
+                return cv2.cvtColor(np.array(image), self.color_mode)
+            except (exception.ScreenShotError, AttributeError) as _:
+                return None
 
-    def __post_init__(self):
-        self.window = Window(self.process)
-        self.window.choose()
-
-
-if __name__ == "__main__":
-    from rich import console
-
-    capture = WindowCapture("gl")
-    capture.set_size(1280, 720)
-    capture.start()
-
-    console.Console().print("Press 'Q' to exit.")
-
-    while True:
-        capture.show()
-
-        if cv2.waitKey(1) == ord("q"):
-            cv2.destroyAllWindows()
-            capture.stop()
-            break
+    _width: int = -1
+    _height: int = -1

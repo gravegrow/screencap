@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Self, Tuple
 
 import screeninfo
 
@@ -10,6 +10,13 @@ class Geometry:
     y: int = 0
     width: int = 1
     height: int = 1
+
+    def set_dimensions(self, x: int, y: int, width: int, height: int) -> Self:
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        return self
 
     @property
     def x_bounds(self):

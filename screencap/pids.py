@@ -6,14 +6,15 @@ from rich.console import Console
 from rich.prompt import IntPrompt
 from rich.table import Table
 
-from screencap.utils import keyboard_interrupt
-
 console = Console()
 
 
-@keyboard_interrupt
 def select_pid(process: str) -> str:
-    pids = find_pids(process)
+    try:
+        pids = find_pids(process)
+    except subprocess.CalledProcessError as e:
+        console.log(f"[red]Process named [bold green]'{process}' [red]not found.")
+        raise SystemExit from e
 
     table = Table(box=box.ROUNDED, header_style="green dim")
     table.add_column("Index", justify="center", style="blue dim", width=len("Index"))
@@ -23,26 +24,26 @@ def select_pid(process: str) -> str:
         table.add_row(str(index + 1), str(pid))
 
     console.print(table)
-    choice = IntPrompt.ask("Pick", choices=[str(i + 1) for i in range(len(pids))])
+
+    try:
+        choice = IntPrompt.ask("Pick", choices=[str(i + 1) for i in range(len(pids))])
+    except KeyboardInterrupt as e:
+        raise SystemExit from e
 
     return pids[int(choice) - 1]
 
 
 def find_pids(process: str) -> List[str]:
-    try:
-        found = subprocess.check_output(
-            [
-                "xdotool",
-                "search",
-                "--onlyvisible",
-                "--classname",
-                process,
-            ],
-            text=True,
-        )
-    except subprocess.CalledProcessError as e:
-        console.log(f"[bold red]Process [bold green]'{process}' [bold red]not found.")
-        raise SystemExit(e) from e
+    found = subprocess.check_output(
+        [
+            "xdotool",
+            "search",
+            "--onlyvisible",
+            "--classname",
+            process,
+        ],
+        text=True,
+    )
 
     pids = []
     for pid in found.split("\n"):
@@ -50,7 +51,3 @@ def find_pids(process: str) -> List[str]:
             pids.append(pid)
 
     return pids
-
-
-if __name__ == "__main__":
-    print(select_pid("Navigator"))
