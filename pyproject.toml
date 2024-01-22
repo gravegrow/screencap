@@ -13,6 +13,7 @@ mss = "^9.0.1"
 opencv-python = "^4.9.0.80"
 opencv-stubs = "^0.0.8"
 screeninfo = "^0.8.1"
+signals = {git = "https://github.com/gravegrow/signals.git"}
 
 
 [build-system]

@@ -2,10 +2,20 @@ import cv2
 from rich import console
 
 from screencap.capture import WindowCapture
+from screencap.pids import PidHandler
+from screencap.previews import Previews
 
 
 def main():
-    capture = WindowCapture("gl")
+    pid_handler = PidHandler("Navigator")
+
+    previews = Previews(pid_handler.pids)
+    previews.start()
+    pid_handler.selection_performed.connect(previews.stop)
+
+    pid = pid_handler.select_pid()
+
+    capture = WindowCapture(pid)
     capture.set_size(1280, 720)
     capture.start()
 
@@ -13,7 +23,6 @@ def main():
 
     while capture.is_running:
         capture.show()
-        # capture.image.crop((10, 10, 50, 50)).show("name")
 
         if cv2.waitKey(1) == ord("q"):
             cv2.destroyAllWindows()
@@ -22,7 +31,7 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except (KeyboardInterrupt, SystemExit) as e:
-        raise SystemExit from e
+    main()
+    # try:
+    # except (KeyboardInterrupt, SystemExit) as e:
+    #     raise SystemExit from e

@@ -5,49 +5,56 @@ from rich import box
 from rich.console import Console
 from rich.prompt import IntPrompt
 from rich.table import Table
+from signals import Signal
 
 console = Console()
 
 
-def select_pid(process: str) -> str:
-    try:
-        pids = find_pids(process)
-    except subprocess.CalledProcessError as e:
-        console.log(f"[red]Process named [bold green]'{process}' [red]not found.")
-        raise SystemExit from e
+class PidHandler:
+    selection_performed: Signal = Signal()
 
-    table = Table(box=box.ROUNDED, header_style="green dim")
-    table.add_column("Index", justify="center", style="blue dim", width=len("Index"))
-    table.add_column("PID", justify="center", style="dim", width=12)
+    @property
+    def pids(self) -> List[str]:
+        return self._pids
 
-    for index, pid in enumerate(pids):
-        table.add_row(str(index + 1), str(pid))
+    def __init__(self, process: str):
+        self._pids = self.find_pids(process)
 
-    console.print(table)
+    def select_pid(self) -> str:
+        table = Table(box=box.ROUNDED, header_style="green dim")
+        table.add_column("Index", justify="center", style="blue dim", width=len("Index"))
+        table.add_column("PID", justify="center", style="dim", width=12)
 
-    try:
-        choice = IntPrompt.ask("Pick", choices=[str(i + 1) for i in range(len(pids))])
-    except KeyboardInterrupt as e:
-        raise SystemExit from e
+        for index, pid in enumerate(self._pids):
+            table.add_row(str(index + 1), str(pid))
 
-    return pids[int(choice) - 1]
+        console.print(table)
 
+        try:
+            choice = IntPrompt.ask("Pick", choices=[str(i + 1) for i in range(len(self._pids))])
+        except KeyboardInterrupt as e:
+            raise SystemExit from e
 
-def find_pids(process: str) -> List[str]:
-    found = subprocess.check_output(
-        [
-            "xdotool",
-            "search",
-            "--onlyvisible",
-            "--classname",
-            process,
-        ],
-        text=True,
-    )
+        self.selection_performed.emit()
+        return self._pids[int(choice) - 1]
 
-    pids = []
-    for pid in found.split("\n"):
-        if pid:
-            pids.append(pid)
+    def find_pids(self, process: str) -> List[str]:
+        found = subprocess.check_output(
+            [
+                "xdotool",
+                "search",
+                "--onlyvisible",
+                "--classname",
+                process,
+            ],
+            text=True,
+        )
 
-    return pids
+        pids = []
+        for pid in found.split("\n"):
+            if pid:
+                pids.append(pid)
+
+        return pids
+
+    _pids: List[str]

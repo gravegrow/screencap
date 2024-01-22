@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Self, Tuple, Union
 
 import cv2
 import numpy as np
@@ -8,7 +8,6 @@ from screencap.geometry import Geometry
 
 class Image:
     image: np.ndarray | None
-    _crop: Geometry = Geometry(0, 0, 0, 0)
 
     def __init__(self, image: np.ndarray | None = None) -> None:
         self.image = image
@@ -28,7 +27,7 @@ class Image:
         return int(np.mean(location[1])), int(np.mean(location[0]))
 
     def show(self, name: str) -> None:
-        if self.image is None:
+        if self.image is None or self.image.shape[0] <= 1:
             return
 
         flags = cv2.WINDOW_AUTOSIZE | cv2.WINDOW_KEEPRATIO | cv2.WINDOW_GUI_NORMAL
@@ -40,8 +39,8 @@ class Image:
             return self
 
         if isinstance(region, Tuple):
-            self._crop.x, self._crop.y, self._crop.width, self._crop.height = region
-            region = self._crop
+            self._crop_geo.x, self._crop_geo.y, self._crop_geo.width, self._crop_geo.height = region
+            region = self._crop_geo
 
         cropped = self.image[
             region.y : min(region.y_bounds, self.image[0].size),
@@ -49,3 +48,5 @@ class Image:
         ]
 
         return Image(cropped)
+
+    _crop_geo: Geometry = Geometry(0, 0, 0, 0)

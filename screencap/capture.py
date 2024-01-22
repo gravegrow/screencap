@@ -1,5 +1,3 @@
-import subprocess
-from subprocess import CalledProcessError
 from typing import Self
 
 import cv2
@@ -8,30 +6,31 @@ from mss import exception, mss
 
 from screencap.geometry import Geometry
 from screencap.image import Image
-from screencap.pids import select_pid
 from screencap.thread import Threaded
 from screencap.window import Window
 
 
 class WindowCapture(Threaded):
-    process: str
     pid: str
     window: Window
     image: Image
     color_mode: int
+
+    def set_max_height(self, height: int = 100) -> Self:
+        self._max_height = height
+        return self
 
     def set_size(self, width: int, height: int) -> Self:
         self._width = width
         self._height = height
         return self
 
-    def show(self) -> None:
+    def show(self, name: str = "WindowCapture") -> None:
         if self.image.image is not None:
-            self.image.show(f"WindowCapture - {self.process}")
+            self.image.show(f"{name} pid: - pid: {self.pid}")
 
-    def __init__(self, process: str, color_mode: int = cv2.COLOR_BGR2GRAY):
-        self.process = process
-        self.pid = select_pid(self.process)
+    def __init__(self, pid: str, color_mode: int = cv2.COLOR_BGR2GRAY):
+        self.pid = pid
         self.window = Window(self.pid)
         self.color_mode = color_mode
         self.image = Image()
@@ -42,8 +41,14 @@ class WindowCapture(Threaded):
         if captured is None:
             return self
 
-        if self._width >= 0 and self._height >= 0:
+        if self._width > 0 and self._height > 0:
             self.image.image = cv2.resize(captured, (self._width, self._height))
+
+        elif self._max_height > 0:
+            scale = self._max_height / captured.shape[1]
+            self.image.image = cv2.resize(
+                captured, (int(captured.shape[1] * scale), int(captured.shape[0] * scale))
+            )
         else:
             self.image.image = captured
 
@@ -66,3 +71,4 @@ class WindowCapture(Threaded):
 
     _width: int = -1
     _height: int = -1
+    _max_height: int = -1
