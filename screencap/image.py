@@ -9,8 +9,30 @@ from screencap.geometry import Geometry
 class Image:
     image: np.ndarray | None
 
+    @property
+    def shape(self):
+        return self.image.shape if self.image is not None else (0, 0)
+
     def __init__(self, image: np.ndarray | None = None) -> None:
         self.image = image
+
+    def draw_id(self, index: int) -> Self:
+        if self.image is None:
+            return self
+
+        for color, thickness in ((0, 20), (255, 6)):
+            self.image = cv2.putText(
+                self.image,
+                str(index),
+                (int(self.image.shape[1] / 2) - 70, int(self.image.shape[0] / 2) + 70),  # origin
+                cv2.FONT_HERSHEY_DUPLEX,  # font
+                7,  # scale
+                color,  # color
+                thickness,  # thickness
+                3,
+            )
+
+        return self
 
     def find(self, image: "Image", threshold: float = 0.8) -> None | Tuple[int, int]:
         if self.image is None or image.image is None:
@@ -27,7 +49,7 @@ class Image:
         return int(np.mean(location[1])), int(np.mean(location[0]))
 
     def show(self, name: str) -> None:
-        if self.image is None or self.image.shape[0] <= 1:
+        if self.image is None:
             return
 
         flags = cv2.WINDOW_AUTOSIZE | cv2.WINDOW_KEEPRATIO | cv2.WINDOW_GUI_NORMAL

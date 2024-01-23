@@ -6,14 +6,14 @@ from mss import exception, mss
 
 from screencap.geometry import Geometry
 from screencap.image import Image
+from screencap.image_view import ImageProvider
 from screencap.thread import Threaded
 from screencap.window import Window
 
 
-class WindowCapture(Threaded):
+class WindowCapture(ImageProvider):
     pid: str
     window: Window
-    image: Image
     color_mode: int
 
     def set_max_height(self, height: int = 100) -> Self:
@@ -27,15 +27,9 @@ class WindowCapture(Threaded):
 
     def show(self, name: str = "WindowCapture") -> None:
         if self.image.image is not None:
-            self.image.show(f"{name} pid: - pid: {self.pid}")
+            self.image.show(f"{name} | PID: {self.pid}")
 
-    def __init__(self, pid: str, color_mode: int = cv2.COLOR_BGR2GRAY):
-        self.pid = pid
-        self.window = Window(self.pid)
-        self.color_mode = color_mode
-        self.image = Image()
-
-    def _execute(self) -> "WindowCapture":
+    def run(self) -> "WindowCapture":
         captured = self._capture_window()
 
         if captured is None:
@@ -45,9 +39,9 @@ class WindowCapture(Threaded):
             self.image.image = cv2.resize(captured, (self._width, self._height))
 
         elif self._max_height > 0:
-            scale = self._max_height / captured.shape[1]
+            scale = self._max_height / captured.shape[0]
             self.image.image = cv2.resize(
-                captured, (int(captured.shape[1] * scale), int(captured.shape[0] * scale))
+                captured, (int(captured.shape[1] * scale), self._max_height)
             )
         else:
             self.image.image = captured
@@ -56,7 +50,6 @@ class WindowCapture(Threaded):
 
     def _capture_window(self) -> np.ndarray | None:
         if self.window.geometry is None:
-            self.stop()
             raise SystemExit
 
         return self._capture_region(self.window.geometry)
@@ -68,6 +61,11 @@ class WindowCapture(Threaded):
                 return cv2.cvtColor(np.array(image), self.color_mode)
             except (exception.ScreenShotError, AttributeError) as _:
                 return None
+
+    def __init__(self, pid: str, color_mode: int = cv2.COLOR_BGR2GRAY):
+        self.pid = pid
+        self.window = Window(self.pid)
+        self.color_mode = color_mode
 
     _width: int = -1
     _height: int = -1

@@ -1,37 +1,44 @@
+import threading
+
 import cv2
 from rich import console
 
 from screencap.capture import WindowCapture
-from screencap.pids import PidHandler
+from screencap.image_view import ImageView
+from screencap.pids import PidManager
 from screencap.previews import Previews
 
 
 def main():
-    pid_handler = PidHandler("Navigator")
+    image_view = ImageView().start()
 
-    previews = Previews(pid_handler.pids)
-    previews.start()
-    pid_handler.selection_performed.connect(previews.stop)
+    pid_manager = PidManager("Navigator")
 
-    pid = pid_handler.select_pid()
+    previews = Previews()
+    previews.start(pid_manager.pids)
+
+    image_view.watch("Preview", previews)
+
+    pid = pid_manager.select_pid()
+
+    previews.stop()
 
     capture = WindowCapture(pid)
-    capture.set_size(1280, 720)
-    capture.start()
+    # capture.set_size(1280, 720)
 
     console.Console().print("Press 'Q' to exit.")
 
-    while capture.is_running:
+    while True:
+        capture.run()
         capture.show()
 
         if cv2.waitKey(1) == ord("q"):
             cv2.destroyAllWindows()
-            capture.stop()
             break
 
 
 if __name__ == "__main__":
-    main()
-    # try:
-    # except (KeyboardInterrupt, SystemExit) as e:
-    #     raise SystemExit from e
+    try:
+        main()
+    except (KeyboardInterrupt, SystemExit) as e:
+        raise SystemExit from e

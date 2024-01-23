@@ -10,7 +10,7 @@ from signals import Signal
 console = Console()
 
 
-class PidHandler:
+class PidManager:
     selection_performed: Signal = Signal()
 
     @property

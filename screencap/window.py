@@ -14,14 +14,10 @@ class Window:
     def geometry(self):
         return self._get_geometry(self.pid)
 
-    def _get_geometry(self, pid: str) -> WindowGeometry | None:
-        try:
-            out = subprocess.check_output(["xdotool", "getwindowgeometry", pid], text=True)
-        except subprocess.CalledProcessError as _:
-            console.Console().log(f"[bold red]Process PID [bold green]{pid} [bold red]lost.")
-            return None
-
+    def _get_geometry(self, pid: str) -> WindowGeometry:
+        out = subprocess.check_output(["xdotool", "getwindowgeometry", pid], text=True)
         out = out.split()
+
         x, y = out[3].split(",")
         width, height = out[7].split("x")
 
