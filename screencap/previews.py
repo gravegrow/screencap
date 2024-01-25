@@ -1,57 +1,67 @@
-import threading
-from typing import List, Self
+from dataclasses import dataclass
+from multiprocessing import Process
+from typing import List
 
 import cv2
-import numpy as np
+import numpy
 
-from screencap.capture import WindowCapture
-from screencap.image import Image
-from screencap.image_view import ImageProvider
+from screencap.grabber import WindowGrabber
+from screencap.image.viewer import Viewer
 
 
-class Previews(ImageProvider):
-    _captures: List[WindowCapture] = []
+@dataclass
+class IdDrawer:
+    scale: float = 7
+    offset: int = 70
+    thickness: int = 6
 
-    is_running: bool = False
-    thread: threading.Thread
+    def draw(self, index: int, data: numpy.ndarray) -> numpy.ndarray:
+        origin = (int(data.shape[1] / 2) - 70, int(data.shape[0] / 2) + 70)
 
-    def start(self, pids: List[str], height: int = 240):
-        self._captures = []
+        for color, thickness in ((0, self.thickness * 2), (255, self.thickness)):
+            data = cv2.putText(
+                data,
+                str(index),
+                origin,
+                cv2.FONT_HERSHEY_DUPLEX,
+                self.scale,
+                color,
+                thickness,
+            )
 
-        for pid in pids:
-            capture = WindowCapture(pid)
-            capture.set_max_height(height)
-            self._captures.append(capture)
+        return data
 
+
+class Previews(Process):
+    def __init__(self, pids: List[str], height: int = 360):
+        super().__init__()
+        self.pids = pids
+        self.id_drawer = IdDrawer()
+        self.viewer = Viewer(height)
+        self.height = height
+        self.grabbers: List[WindowGrabber] = []
+        self.name = "Previews"
         self.is_running = True
 
-        self.thread = threading.Thread(target=self._execute)
-        self.thread.start()
+        for pid in pids:
+            grabber = WindowGrabber(pid)
+            self.grabbers.append(grabber)
 
-    def stop(self) -> Self:
+    def generate_preview(self) -> numpy.ndarray:
+        previews = []
+        for index, grabber in enumerate(self.grabbers):
+            data = grabber.grab()
+            width = data.shape[1] * (self.height / data.shape[0])
+            data = cv2.resize(data, (int(width), self.height))
+            data = self.id_drawer.draw(index + 1, data)
+            previews.append(data)
+
+        return numpy.concatenate(previews, axis=1)
+
+    def run(self) -> None:
+        while self.is_running:
+            self.viewer.view(self.name, self.generate_preview())
+
+    def stop(self) -> None:
+        cv2.destroyWindow(self.name)
         self.is_running = False
-        self.thread.join()
-
-        return self
-
-    def _execute(self) -> None:
-        lock = threading.Lock()
-        with lock:
-            while self.is_running:
-                images = []
-                for index, capture in enumerate(self._captures):
-                    capture.run()
-                    capture.image.draw_id(index + 1)
-                    images.append(capture.image.image)
-
-                if any(img is None for img in images):
-                    continue
-
-                self.image.image = np.concatenate(images, axis=1)
-                # self.preview.show("Previews")
-
-                if cv2.waitKey(1) == ord("q"):
-                    self.stop()
-                    break
-
-            # cv2.destroyWindow("Previews")

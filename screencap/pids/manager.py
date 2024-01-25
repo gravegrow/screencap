@@ -20,7 +20,7 @@ class PidManager:
     def __init__(self, process: str):
         self._pids = self.find_pids(process)
 
-    def select_pid(self) -> str:
+    def select(self) -> str:
         table = Table(box=box.ROUNDED, header_style="green dim")
         table.add_column("Index", justify="center", style="blue dim", width=len("Index"))
         table.add_column("PID", justify="center", style="dim", width=12)
@@ -30,10 +30,7 @@ class PidManager:
 
         console.print(table)
 
-        try:
-            choice = IntPrompt.ask("Pick", choices=[str(i + 1) for i in range(len(self._pids))])
-        except KeyboardInterrupt as e:
-            raise SystemExit from e
+        choice = IntPrompt.ask("Pick", choices=[str(i + 1) for i in range(len(self._pids))])
 
         self.selection_performed.emit()
         return self._pids[int(choice) - 1]

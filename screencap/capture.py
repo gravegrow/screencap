@@ -1,72 +1,39 @@
 from typing import Self
 
-import cv2
-import numpy as np
-from mss import exception, mss
-
-from screencap.geometry import Geometry
-from screencap.image import Image
-from screencap.image_view import ImageProvider
+from screencap import pids
+from screencap.grabber import WindowGrabber
+from screencap.image.image import Image
+from screencap.image.viewer import Viewer
 from screencap.thread import Threaded
-from screencap.window import Window
 
 
-class WindowCapture(ImageProvider):
-    pid: str
-    window: Window
-    color_mode: int
+class WindowCapture(Threaded):
+    def __init__(self, process: str):
+        self.pid = pids.select(process)
+        self.grabber = WindowGrabber(self.pid)
+        self.viewer = Viewer()
+        self.image: Image = Image()
+        self._show: bool = False
+        self._view_name = f"WindowCapture - PID: {self.pid}"
 
-    def set_max_height(self, height: int = 100) -> Self:
-        self._max_height = height
+    def show(self, height: int = 720) -> Self:
+        self.viewer.height = height
+        self._show = True
         return self
 
-    def set_size(self, width: int, height: int) -> Self:
-        self._width = width
-        self._height = height
-        return self
+    def run(self):
+        while self.is_running:
+            with self.lock:
+                self.image.data = self.grabber.grab()
 
-    def show(self, name: str = "WindowCapture") -> None:
-        if self.image.image is not None:
-            self.image.show(f"{name} | PID: {self.pid}")
+                if self._show:
+                    self.viewer.view(self._view_name, self.image.data)
 
-    def run(self) -> "WindowCapture":
-        captured = self._capture_window()
 
-        if captured is None:
-            return self
+def main():
+    capture = WindowCapture("Navigator").start()
+    capture.show(720)
 
-        if self._width > 0 and self._height > 0:
-            self.image.image = cv2.resize(captured, (self._width, self._height))
 
-        elif self._max_height > 0:
-            scale = self._max_height / captured.shape[0]
-            self.image.image = cv2.resize(
-                captured, (int(captured.shape[1] * scale), self._max_height)
-            )
-        else:
-            self.image.image = captured
-
-        return self
-
-    def _capture_window(self) -> np.ndarray | None:
-        if self.window.geometry is None:
-            raise SystemExit
-
-        return self._capture_region(self.window.geometry)
-
-    def _capture_region(self, geometry: Geometry) -> np.ndarray | None:
-        with mss(with_cursor=True) as scr:
-            try:
-                image = scr.grab(geometry.region)
-                return cv2.cvtColor(np.array(image), self.color_mode)
-            except (exception.ScreenShotError, AttributeError) as _:
-                return None
-
-    def __init__(self, pid: str, color_mode: int = cv2.COLOR_BGR2GRAY):
-        self.pid = pid
-        self.window = Window(self.pid)
-        self.color_mode = color_mode
-
-    _width: int = -1
-    _height: int = -1
-    _max_height: int = -1
+if __name__ == "__main__":
+    main()
