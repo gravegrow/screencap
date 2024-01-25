@@ -7,9 +7,9 @@ from screencap.area import Area
 
 
 class Image:
-    data: np.ndarray | None
+    data: np.ndarray
 
-    def __init__(self, data: np.ndarray | None = None) -> None:
+    def __init__(self, data: np.ndarray = np.zeros((240, 360))) -> None:
         self.data = data
 
     @property
@@ -17,9 +17,6 @@ class Image:
         return self.data.shape if self.data is not None else (0, 0)
 
     def search(self, data: np.ndarray, threshold: float = 0.8) -> None | Tuple[int, int]:
-        if self.data is None or data is None:
-            return None
-
         needle = cv2.Mat(data)
         result = cv2.matchTemplate(self.data, needle, cv2.TM_CCOEFF_NORMED)
         location = np.where(result >= threshold)
@@ -30,9 +27,6 @@ class Image:
         return int(np.mean(location[1])), int(np.mean(location[0]))
 
     def crop(self, region: Union[Area, Tuple[int, int, int, int]]) -> "Image":
-        if self.data is None:
-            return self
-
         if isinstance(region, Tuple):
             (
                 self._crop_area.x,
