@@ -1,21 +1,22 @@
 from abc import ABC, abstractmethod
-from threading import Lock, Thread
+from multiprocessing import Lock, Process
 from typing import Self
 
 
-class Threaded(ABC):
-    thread: Thread
-    lock: Lock = Lock()
+class Processor(ABC):
+    process: Process
     is_running: bool = False
+    lock = Lock()
 
     def start(self) -> Self:
         self.is_running = True
-        self.thread = Thread(target=self.run)
-        self.thread.start()
+        self.process = Process(target=self.run)
+        self.process.start()
         return self
 
     def stop(self) -> None:
         self.is_running = False
+        self.process.terminate()
 
     @abstractmethod
     def run(self) -> None:

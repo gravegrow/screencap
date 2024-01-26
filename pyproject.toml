@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "screencap"
-version = "0.1.71"
+version = "0.1.72"
 description = ""
 authors = ["gravegrow <gravegrow@gmail.com>"]
 readme = "README.md"

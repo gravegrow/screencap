@@ -1,49 +1,31 @@
 import subprocess
 from typing import List
 
-from rich import box
-from rich.console import Console
-from rich.prompt import IntPrompt
-from rich.table import Table
-from signals import Signal
-
-console = Console()
+from screencap.pids.selection_ui import SelectionUI
 
 
 class PidManager:
-    selection_performed: Signal = Signal()
-
     @property
     def pids(self) -> List[str]:
         return self._pids
 
     def __init__(self, process: str):
         self._pids = self.find_pids(process)
+        self._unused = self._pids.copy()
 
-    def select(self) -> str:
-        table = Table(box=box.ROUNDED, header_style="green dim")
-        table.add_column("Index", justify="center", style="blue dim", width=len("Index"))
-        table.add_column("PID", justify="center", style="dim", width=12)
+    def select(self, unused: bool = False) -> str:
+        pids = self._pids if not unused else self._unused
+        SelectionUI.print(pids)
+        choice = SelectionUI.ask(pids)
 
-        for index, pid in enumerate(self._pids):
-            table.add_row(str(index + 1), str(pid))
+        pid = pids[int(choice) - 1]
+        self._unused.remove(pid)
 
-        console.print(table)
-
-        choice = IntPrompt.ask("Pick", choices=[str(i + 1) for i in range(len(self._pids))])
-
-        self.selection_performed.emit()
-        return self._pids[int(choice) - 1]
+        return pid
 
     def find_pids(self, process: str) -> List[str]:
         found = subprocess.check_output(
-            [
-                "xdotool",
-                "search",
-                "--onlyvisible",
-                "--classname",
-                process,
-            ],
+            ["xdotool", "search", "--onlyvisible", "--classname", process],
             text=True,
         )
 
@@ -55,3 +37,4 @@ class PidManager:
         return pids
 
     _pids: List[str]
+    _unused: List[str]
