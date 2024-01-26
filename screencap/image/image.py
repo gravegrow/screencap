@@ -30,3 +30,8 @@ def search(
         threshold -= 0.01
 
     return result
+
+
+def set_height(source: np.ndarray, height: int) -> np.ndarray:
+    width = source.shape[1] * (height / source.shape[0])
+    return cv2.resize(source, (int(width), height))

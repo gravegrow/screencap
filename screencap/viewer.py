@@ -4,6 +4,8 @@ import cv2
 import numpy
 from rich.console import Console
 
+from screencap.image import image
+
 console = Console()
 
 
@@ -23,8 +25,7 @@ class Viewer:
             return
 
         if height > 0:
-            width = int(data.shape[1] * (height / data.shape[0]))
-            data = cv2.resize(data, (width, height))
+            data = image.set_height(data, height)
 
         cv2.namedWindow(name, flags=self._flags)
         cv2.imshow(name, data)

@@ -4,6 +4,7 @@ from typing import List
 import cv2
 import numpy
 
+from screencap import image
 from screencap.grabber import WindowGrabber
 from screencap.processor import Processor
 from screencap.viewer import Viewer
@@ -29,8 +30,7 @@ class Previews(Processor):
         previews = []
         for index, grabber in enumerate(self.grabbers):
             data = grabber.grab()
-            width = data.shape[1] * (self.height / data.shape[0])
-            data = cv2.resize(data, (int(width), self.height))
+            data = image.set_height(data, self.height)
             data = self.id_drawer.draw(index + 1, data)
             previews.append(data)
 
