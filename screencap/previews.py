@@ -6,8 +6,17 @@ import numpy
 
 from screencap import image
 from screencap.grabber import WindowGrabber
+from screencap.pids.manager import PidManager
 from screencap.processor import Processor
 from screencap.viewer import Viewer
+
+
+def SelectPidPreviews(process: str, height=360) -> str:
+    pids = PidManager(process)
+    previews = Previews(pids.pids, height).start()
+    pid = pids.select()
+    previews.stop()
+    return pid
 
 
 class Previews(Processor):

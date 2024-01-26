@@ -6,7 +6,7 @@ from screencap.previews import Previews
 
 
 def main():
-    pids = PidManager("Wow.exe")
+    pids = PidManager("Navigator")
     previews = Previews(pids.pids, 360).start()
     pid = pids.select()
     previews.stop()
