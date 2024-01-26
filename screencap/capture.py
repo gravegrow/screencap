@@ -13,7 +13,7 @@ class WindowCapture(Processor):
         self.pid = pid
         self.grabber = WindowGrabber(pid)
         self.capture_height = cap_height
-        self.image: numpy.ndarray = self.grabber.grab()
+        self.image: numpy.ndarray = image.set_height(self.grabber.grab(), cap_height)
 
         self._viewer: Viewer = Viewer()
         self._viewer_name = f"{self.pid}"
@@ -26,8 +26,8 @@ class WindowCapture(Processor):
 
     def run(self):
         while self.is_running:
-            with self.lock:
-                self.image = image.set_height(self.grabber.grab(), self.capture_height)
+            # with self.lock:
+            self.image = image.set_height(self.grabber.grab(), self.capture_height)
 
-                if self._viewer_height > 0:
-                    self._viewer.view(self._viewer_name, self.image, self._viewer_height)
+            if self._viewer_height > 0:
+                self._viewer.view(self._viewer_name, self.image, self._viewer_height)
