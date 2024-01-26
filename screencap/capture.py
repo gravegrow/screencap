@@ -3,14 +3,16 @@ from typing import Self
 import numpy
 
 from screencap.grabber import WindowGrabber
+from screencap.image import image
 from screencap.processor import Processor
 from screencap.viewer import Viewer
 
 
 class WindowCapture(Processor):
-    def __init__(self, pid: str):
+    def __init__(self, pid: str, cap_height: int = 720):
         self.pid = pid
         self.grabber = WindowGrabber(pid)
+        self.capture_height = cap_height
         self.image: numpy.ndarray = self.grabber.grab()
 
         self._viewer: Viewer = Viewer()
@@ -25,7 +27,7 @@ class WindowCapture(Processor):
     def run(self):
         while self.is_running:
             with self.lock:
-                self.image = self.grabber.grab()
+                self.image = image.set_height(self.grabber.grab(), self.capture_height)
 
                 if self._viewer_height > 0:
                     self._viewer.view(self._viewer_name, self.image, self._viewer_height)
