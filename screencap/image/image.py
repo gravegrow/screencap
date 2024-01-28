@@ -16,7 +16,7 @@ def crop(source: np.ndarray, area: Area) -> np.ndarray:
 
 def search(
     source: np.ndarray, target: np.ndarray, min_thresh: float = 0.7
-) -> Tuple[int, int] | None:
+) -> Tuple[Tuple[int, int] | None, float]:
     threshold = 1.0
     result = None
 
@@ -30,7 +30,7 @@ def search(
 
         threshold -= 0.01
 
-    return result
+    return result, threshold
 
 
 def set_height(source: np.ndarray, height: int) -> np.ndarray:
