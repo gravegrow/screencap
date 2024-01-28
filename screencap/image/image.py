@@ -59,3 +59,11 @@ class IdDrawer:
             )
 
         return data
+
+
+def rotate(source: np.ndarray, angle: float) -> np.ndarray:
+    image_center = tuple(np.array(source.shape[1::-1]) / 2)
+    rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+    dsize = source.shape[1::-1]
+    flags = cv2.INTER_LINEAR
+    return cv2.warpAffine(source, rot_mat, dsize, flags=flags, borderValue=255)  # type: ignore
