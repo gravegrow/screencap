@@ -30,7 +30,7 @@ class Previews(Processor):
             self.grabbers.append(grabber)
 
     def run(self) -> None:
-        while self.is_running:
+        while self.running:
             self.viewer.view("Previews", self.generate_preview())
 
     def generate_preview(self) -> numpy.ndarray:

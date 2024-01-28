@@ -14,8 +14,8 @@ class WindowCapture(Processor):
         self.grabber = WindowGrabber(pid)
         self.capture_height = capture_height
 
-        self.preview: Viewer = Viewer()
-        self._viewer_height = 0
+        self._preview: Viewer = Viewer()
+        self._preview_height = 0
 
         self._img_key = "image"
         self._image: np.ndarray = self.grabber.grab()
@@ -26,13 +26,13 @@ class WindowCapture(Processor):
         return self.get_shared(self._img_key)
 
     def show(self, height: int = 720) -> Self:
-        self._viewer_height = height
+        self._preview_height = height
         return self
 
     def run(self):
-        while self.is_running:
+        while self.running:
             self._image = Image.set_height(self.grabber.grab(), self.capture_height)
             self.share(self._img_key, self._image)
 
-            if self._viewer_height > 0:
-                self.preview.view(self.pid, self._image, self._viewer_height)
+            if self._preview_height > 0:
+                self._preview.view(self.pid, self._image, self._preview_height)

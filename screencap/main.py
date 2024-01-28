@@ -16,10 +16,7 @@ def main():
 
     capture = WindowCapture(pid).show(720).start()
 
-    try:
-        prompt.Prompt.ask("[red bold]Press [green]'ENTER' [red]to exit")
-    except KeyboardInterrupt:
-        pass
+    prompt.Prompt.ask("[red bold]Press [green]'ENTER' [red]to exit")
 
     capture.stop()
 

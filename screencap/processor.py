@@ -5,7 +5,7 @@ from typing import Any, Dict, Self
 
 class Processor(ABC):
     process: Process
-    is_running: bool = False
+    running: bool = False
     lock = Lock()
 
     _queue = Queue()
@@ -25,13 +25,13 @@ class Processor(ABC):
     def start(self) -> Self:
         self._queue.put(self._shared)
 
-        self.is_running = True
+        self.running = True
         self.process = Process(target=self.run)
         self.process.start()
         return self
 
     def stop(self) -> None:
-        self.is_running = False
+        self.running = False
         self.process.terminate()
 
     @abstractmethod
