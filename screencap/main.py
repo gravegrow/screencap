@@ -1,8 +1,11 @@
+import rich.console
 from rich import prompt
 
 from screencap.capture import WindowCapture
 from screencap.pids.manager import PidManager
 from screencap.previews import Previews
+
+console = rich.console.Console()
 
 
 def main():

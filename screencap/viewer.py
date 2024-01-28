@@ -33,6 +33,5 @@ class Viewer:
         if cv2.waitKey(1) == ord("q"):
             cv2.destroyWindow(name)
             self.ignore(name)
-            # console.log(f"View '{name}' has been closed.")
 
         return

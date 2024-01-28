@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Tuple
 
 import cv2
@@ -35,3 +36,26 @@ def search(
 def set_height(source: np.ndarray, height: int) -> np.ndarray:
     width = source.shape[1] * (height / source.shape[0])
     return cv2.resize(source, (int(width), height))
+
+
+@dataclass
+class IdDrawer:
+    scale: float = 7
+    offset: int = 70
+    thickness: int = 6
+
+    def draw(self, index: int, data: np.ndarray) -> np.ndarray:
+        origin = (int(data.shape[1] / 2) - self.offset, int(data.shape[0] / 2) + self.offset)
+
+        for color, thickness in ((0, self.thickness * 2), (255, self.thickness)):
+            data = cv2.putText(
+                data,
+                str(index),
+                origin,
+                cv2.FONT_HERSHEY_DUPLEX,
+                self.scale,
+                color,
+                thickness,
+            )
+
+        return data
